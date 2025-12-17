@@ -14,7 +14,7 @@
 
 ## 懒人版快速安装
 
-你可以使用Claude Code，配置 [GLM Coding Plan](https://bigmodel.cn/glm-coding) 后，输入以下提示词，快速部署本项目。
+你可以使用 Claude Code，配置 [GLM Coding Plan](https://bigmodel.cn/glm-coding) 后，输入以下提示词，快速部署本项目。
 
 ```
 访问文档，为我安装 AutoGLM
@@ -34,7 +34,7 @@ ADB 调试能力，可通过 WiFi 或网络连接设备，实现灵活的远程�
 ## 模型下载地址
 
 | Model                         | Download Links                                                                                                                                                         |
-|-------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | AutoGLM-Phone-9B              | [🤗 Hugging Face](https://huggingface.co/zai-org/AutoGLM-Phone-9B)<br>[🤖 ModelScope](https://modelscope.cn/models/ZhipuAI/AutoGLM-Phone-9B)                           |
 | AutoGLM-Phone-9B-Multilingual | [🤗 Hugging Face](https://huggingface.co/zai-org/AutoGLM-Phone-9B-Multilingual)<br>[🤖 ModelScope](https://modelscope.cn/models/ZhipuAI/AutoGLM-Phone-9B-Multilingual) |
 
@@ -65,7 +65,7 @@ ADB 调试能力，可通过 WiFi 或网络连接设备，实现灵活的远程�
 1. 开发者模式启用：通常启用方法是，找到 `设置-关于手机-版本号` 然后连续快速点击 10
    次左右，直到弹出弹窗显示“开发者模式已启用”。不同手机会有些许差别，如果找不到，可以上网搜索一下教程。
 2. USB 调试启用：启用开发者模式之后，会出现 `设置-开发者选项-USB 调试`，勾选启用
-3. 部分机型在设置开发者选项以后, 可能需要重启设备才能生效. 可以测试一下: 将手机用USB数据线连接到电脑后, `adb devices`
+3. 部分机型在设置开发者选项以后, 可能需要重启设备才能生效. 可以测试一下: 将手机用 USB 数据线连接到电脑后, `adb devices`
    查看是否有设备信息, 如果没有说明连接失败.
 
 **请务必仔细检查相关权限**
@@ -82,15 +82,15 @@ ADB 调试能力，可通过 WiFi 或网络连接设备，实现灵活的远程�
 ### 1. 安装依赖
 
 ```bash
-pip install -r requirements.txt 
+pip install -r requirements.txt
 pip install -e .
 ```
 
 ### 2. 配置 ADB
 
-确认 **USB数据线具有数据传输功能**, 而不是仅有充电功能
+确认 **USB 数据线具有数据传输功能**, 而不是仅有充电功能
 
-确保已安装 ADB 并使用 **USB数据线** 连接设备：
+确保已安装 ADB 并使用 **USB 数据线** 连接设备：
 
 ```bash
 # 检查已连接的设备
@@ -139,8 +139,8 @@ python main.py --base-url https://api-inference.modelscope.cn/v1 --model "ZhipuA
 
 1. 按照 `requirements.txt` 中 `For Model Deployment` 章节自行安装推理引擎框架。
 
-对于SGLang， 除了使用pip安装，你也可以使用官方docker:
->
+对于 SGLang， 除了使用 pip 安装，你也可以使用官方 docker:
+
 > ```shell
 > docker pull lmsysorg/sglang:v0.5.6.post1
 > ```
@@ -151,8 +151,8 @@ python main.py --base-url https://api-inference.modelscope.cn/v1 --model "ZhipuA
 > pip install nvidia-cudnn-cu12==9.16.0.29
 > ```
 
-对于 vLLM，除了使用pip 安装，你也可以使用官方docker:
->
+对于 vLLM，除了使用 pip 安装，你也可以使用官方 docker:
+
 > ```shell
 > docker pull vllm/vllm-openai:v0.12.0
 > ```
@@ -165,7 +165,7 @@ python main.py --base-url https://api-inference.modelscope.cn/v1 --model "ZhipuA
 
 **注意**: 上述步骤出现的关于 transformers 的依赖冲突可以忽略。
 
-1. 在对应容器或者实体机中(非容器安装)下载模型，通过 SGlang / vLLM 启动，得到 OpenAI 格式服务。这里提供一个 vLLM部署方案，请严格遵循我们提供的启动参数:
+1. 在对应容器或者实体机中(非容器安装)下载模型，通过 SGlang / vLLM 启动，得到 OpenAI 格式服务。这里提供一个 vLLM 部署方案，请严格遵循我们提供的启动参数:
 
 - vLLM:
 
@@ -197,7 +197,7 @@ python3 -m sglang.launch_server --model-path  zai-org/AutoGLM-Phone-9B \
 - 该模型结构与 `GLM-4.1V-9B-Thinking` 相同, 关于模型部署的详细内容，你也以查看 [GLM-V](https://github.com/zai-org/GLM-V)
   获取模型部署和使用指南。
 
-- 运行成功后，将可以通过 `http://localhost:8000/v1` 访问模型服务。 如果您在远程服务器部署模型, 使用该服务器的IP访问模型.
+- 运行成功后，将可以通过 `http://localhost:8000/v1` 访问模型服务。 如果您在远程服务器部署模型, 使用该服务器的 IP 访问模型.
 
 ### 4. 检查模型部署
 
@@ -226,6 +226,7 @@ python scripts/check_deployment_cn.py --base-url http://你的IP:你的端口/v1
 ```
 
 **参数说明：**
+
 - `--base-url`: 模型服务地址(根据实际部署地址修改)
 - `--model`: 模型名称
 - `--messages-file`: 可选，指定自定义测试消息文件(默认使用 `scripts/sample_messages.json`)
@@ -257,6 +258,7 @@ python main.py --list-apps
 
 ```python
 from phone_agent import PhoneAgent
+from phone_agent.agent import AgentConfig
 from phone_agent.model import ModelConfig
 
 # Configure model
@@ -265,13 +267,114 @@ model_config = ModelConfig(
     model_name="autoglm-phone-9b",
 )
 
+# Configure agent with visual feedback
+agent_config = AgentConfig(
+    enable_visual_feedback=True,  # Enable visual indicators on phone screen
+    verbose=True,
+)
+
 # 创建 Agent
-agent = PhoneAgent(model_config=model_config)
+agent = PhoneAgent(
+    model_config=model_config,
+    agent_config=agent_config,
+)
 
 # 执行任务
 result = agent.run("打开淘宝搜索无线耳机")
 print(result)
 ```
+
+### WebSocket 网页控制台
+
+项目提供了基于 WebSocket 的实时网页控制台，可以在浏览器中实时查看执行过程和结果。
+
+#### 启动服务器
+
+```bash
+# 启动 WebSocket 服务器
+python ws.py
+
+# 或者使用启动脚本
+python start_server.py
+```
+
+服务器将在 `http://localhost:8001` 启动，提供以下功能：
+
+- 🌐 HTTP 服务：访问 `http://localhost:8001` 查看控制页面
+- 📡 WebSocket 服务：`ws://localhost:8001/ws` 处理实时通信
+- 📱 设备控制：通过网页界面发送自然语言指令
+- 👁️ 实时监控：查看 AI 思考过程和执行步骤
+
+#### 网页使用
+
+1. 启动服务器后，在浏览器中打开 `index.html` 或访问 `http://localhost:8001`
+2. 点击"连接"按钮建立 WebSocket 连接
+3. 在文本框中输入指令（如："打开微信给朋友发消息"）
+4. 点击"执行"按钮或按 Ctrl+Enter 发送指令
+5. 实时查看 AI 思考过程和操作执行结果
+
+#### 功能特性
+
+- 🔄 自动重连：连接断开时自动尝试重连
+- 📊 状态显示：实时显示连接状态
+- 🗑️ 清空输出：一键清空控制台输出
+- ⌨️ 快捷键：Ctrl+Enter 快速发送指令
+- 📱 响应式设计：适配不同屏幕尺寸
+
+## 可视化反馈
+
+Phone Agent 支持在手机屏幕上显示操作指示器，让您能直观看到 AI 的操作过程：
+
+### 功能特性
+
+- 📱 **点击指示器**：在手机上显示点击坐标的通知
+- 👆 **滑动指示器**：显示滑动路径和方向的通知
+- 📳 **触觉反馈**：操作时的手机振动提示
+- 🔔 **状态通知**：操作完成的通知提醒
+
+### 启用方法
+
+#### 命令行方式
+
+```bash
+# 启用可视化反馈
+python main.py --enable-visual-feedback --base-url http://localhost:8000/v1 "打开微信给张三发消息"
+```
+
+#### Python API 方式
+
+```python
+from phone_agent import PhoneAgent
+from phone_agent.agent import AgentConfig
+
+agent_config = AgentConfig(enable_visual_feedback=True)
+agent = PhoneAgent(agent_config=agent_config)
+```
+
+#### 环境变量方式
+
+```bash
+export PHONE_AGENT_ENABLE_VISUAL_FEEDBACK=1
+python main.py --base-url http://localhost:8000/v1 "打开美团搜索火锅"
+```
+
+### 演示脚本
+
+运行可视化反馈演示：
+
+```bash
+python examples/visual_feedback_demo.py
+```
+
+### 实时输出测试
+
+测试WebSocket实时输出功能：
+
+```bash
+python test_realtime_output.py
+```
+
+此脚本模拟完整的AI Agent执行过程，验证输出是否实时显示。
 
 ## 远程调试
 
@@ -281,7 +384,7 @@ Phone Agent 支持通过 WiFi/网络进行远程 ADB 调试，无需 USB 连接�
 
 #### 在手机端开启无线调试
 
-确保手机和电脑在同一个WiFi中，如图所示
+确保手机和电脑在同一个 WiFi 中，如图所示
 
 ![开启无线调试](resources/setting.png)
 
@@ -359,7 +462,7 @@ conn.disconnect("192.168.1.100:5555")
 
 ## 配置
 
-### 自定义SYSTEM PROMPT
+### 自定义 SYSTEM PROMPT
 
 系统提供中英文两套 prompt，通过 `--lang` 参数切换：
 
@@ -370,14 +473,15 @@ conn.disconnect("192.168.1.100:5555")
 
 ### 环境变量
 
-| 变量                      | 描述               | 默认值                        |
-|-------------------------|------------------|----------------------------|
-| `PHONE_AGENT_BASE_URL`  | 模型 API 地址        | `http://localhost:8000/v1` |
-| `PHONE_AGENT_MODEL`     | 模型名称             | `autoglm-phone-9b`         |
-| `PHONE_AGENT_API_KEY`   | 模型认证 API Key     | `EMPTY`                    |
-| `PHONE_AGENT_MAX_STEPS` | 每个任务最大步数         | `100`                      |
-| `PHONE_AGENT_DEVICE_ID` | ADB 设备 ID        | (自动检测)                     |
+| 变量                    | 描述                | 默认值                     |
+| ----------------------- | ------------------- | -------------------------- |
+| `PHONE_AGENT_BASE_URL`  | 模型 API 地址       | `http://localhost:8000/v1` |
+| `PHONE_AGENT_MODEL`     | 模型名称            | `autoglm-phone-9b`         |
+| `PHONE_AGENT_API_KEY`   | 模型认证 API Key    | `EMPTY`                    |
+| `PHONE_AGENT_MAX_STEPS` | 每个任务最大步数    | `100`                      |
+| `PHONE_AGENT_DEVICE_ID` | ADB 设备 ID         | (自动检测)                 |
 | `PHONE_AGENT_LANG`      | 语言 (`cn` 或 `en`) | `cn`                       |
+| `PHONE_AGENT_ENABLE_VISUAL_FEEDBACK` | 启用可视化反馈 | `false`                    |
 
 ### 模型配置
 
@@ -451,16 +555,16 @@ config = AgentConfig(
 
 Phone Agent 支持 50+ 款主流中文应用：
 
-| 分类   | 应用              |
-|------|-----------------|
-| 社交通讯 | 微信、QQ、微博        |
-| 电商购物 | 淘宝、京东、拼多多       |
-| 美食外卖 | 美团、饿了么、肯德基      |
-| 出行旅游 | 携程、12306、滴滴出行   |
-| 视频娱乐 | bilibili、抖音、爱奇艺 |
-| 音乐音频 | 网易云音乐、QQ音乐、喜马拉雅 |
+| 分类     | 应用                          |
+| -------- | ----------------------------- |
+| 社交通讯 | 微信、QQ、微博                |
+| 电商购物 | 淘宝、京东、拼多多            |
+| 美食外卖 | 美团、饿了么、肯德基          |
+| 出行旅游 | 携程、12306、滴滴出行         |
+| 视频娱乐 | bilibili、抖音、爱奇艺        |
+| 音乐音频 | 网易云音乐、QQ 音乐、喜马拉雅 |
 | 生活服务 | 大众点评、高德地图、百度地图  |
-| 内容社区 | 小红书、知乎、豆瓣       |
+| 内容社区 | 小红书、知乎、豆瓣            |
 
 运行 `python main.py --list-apps` 查看完整列表。
 
@@ -468,18 +572,29 @@ Phone Agent 支持 50+ 款主流中文应用：
 
 Agent 可以执行以下操作：
 
-| 操作           | 描述              |
-|--------------|-----------------|
-| `Launch`     | 启动应用            |  
-| `Tap`        | 点击指定坐标          |
-| `Type`       | 输入文本            |
-| `Swipe`      | 滑动屏幕            |
-| `Back`       | 返回上一页           |
-| `Home`       | 返回桌面            |
-| `Long Press` | 长按              |
-| `Double Tap` | 双击              |
-| `Wait`       | 等待页面加载          |
+| 操作         | 描述                        |
+| ------------ | --------------------------- |
+| `Launch`     | 启动应用                    |
+| `Tap`        | 点击指定坐标                |
+| `Type`       | 输入文本                    |
+| `Swipe`      | 滑动屏幕                    |
+| `Back`       | 返回上一页                  |
+| `Home`       | 返回桌面                    |
+| `Long Press` | 长按                        |
+| `Double Tap` | 双击                        |
+| `Wait`       | 等待页面加载                |
 | `Take_over`  | 请求人工接管(登录/验证码等) |
+
+#### 可视化反馈功能
+
+Phone Agent 支持在手机屏幕上显示操作指示器，让您能直观看到 AI 的操作：
+
+- 📱 **点击指示器**：显示点击坐标的通知
+- 👆 **滑动指示器**：显示滑动路径的通知
+- 📳 **触觉反馈**：操作时的手机振动
+- 🔔 **状态通知**：操作完成的通知
+
+使用 `--enable-visual-feedback` 参数启用此功能。
 
 ## 自定义回调
 
@@ -595,7 +710,7 @@ adb devices
 
 解决办法: 在运行代码的命令前面加上环境变量: `PYTHONIOENCODING=utf-8`
 
-### 交互模式非TTY环境无法使用
+### 交互模式非 TTY 环境无法使用
 
 报错形如: `EOF when reading a line`
 
@@ -633,11 +748,13 @@ adb devices
 ### 项目概述
 
 Open-AutoGLM 是一个手机 Agent 框架：
+
 - **输入**：用户的自然语言指令(如"打开微信发消息给张三")
 - **输出**：自动操作用户的安卓手机完成任务
 - **原理**：截图 → 视觉模型理解界面 → 输出点击坐标 → ADB 执行操作 → 循环
 
 架构分为两部分：
+
 1. **Agent 代码**(本仓库)：运行在用户电脑上，负责调用模型、解析动作、控制手机
 2. **视觉模型服务**：可以是远程 API，也可以本地部署
 
@@ -648,11 +765,13 @@ Open-AutoGLM 是一个手机 Agent 框架：
 在开始部署前，请逐项向用户确认以下内容：
 
 #### 硬件环境
+
 - [ ] 用户有一台安卓手机(Android 7.0+)
 - [ ] 用户有一根支持数据传输的 USB 数据线(不是仅充电线)
 - [ ] 手机和电脑可以通过数据线连接
 
 #### 手机端配置
+
 - [ ] 手机已开启「开发者模式」(设置 → 关于手机 → 连续点击版本号 7 次)
 - [ ] 手机已开启「USB 调试」(设置 → 开发者选项 → USB 调试)
 - [ ] 部分机型需要同时开启「USB 调试(安全设置)」
@@ -664,6 +783,7 @@ Open-AutoGLM 是一个手机 Agent 框架：
 **请明确询问用户：你是否已有可用的 AutoGLM 模型服务？**
 
 - **选项 A：使用已部署的模型服务(推荐)**
+
   - 用户提供模型服务的 URL(如 `http://xxx.xxx.xxx.xxx:8000/v1`)
   - 无需本地 GPU，无需下载模型
   - 直接使用该 URL 作为 `--base-url` 参数
@@ -701,6 +821,7 @@ adb devices
 ```
 
 **如果 `adb devices` 显示空列表或 unauthorized：**
+
 1. 检查手机上是否弹出授权框，点击「允许」
 2. 检查 USB 调试是否开启
 3. 尝试更换数据线或 USB 接口
@@ -731,6 +852,7 @@ pip install -e .
 你可以使用以下第三方模型服务：
 
 1. **智谱 BigModel**
+
    - 文档：https://docs.bigmodel.cn/cn/api/introduction
    - `--base-url`：`https://open.bigmodel.cn/api/paas/v4`
    - `--model`：`autoglm-phone`
@@ -786,6 +908,7 @@ python main.py --base-url {MODEL_URL} --model "autoglm-phone-9b" "打开微信�
 ```
 
 **预期结果：**
+
 - 手机自动打开微信
 - 自动搜索「文件传输助手」
 - 自动发送消息「部署成功」
@@ -794,15 +917,15 @@ python main.py --base-url {MODEL_URL} --model "autoglm-phone-9b" "打开微信�
 
 ### 异常处理
 
-| 错误现象 | 可能原因 | 解决方案 |
-|---------|---------|---------|
-| `adb devices` 无输出 | USB 调试未开启或数据线问题 | 检查开发者选项，更换数据线 |
-| `adb devices` 显示 unauthorized | 手机未授权 | 手机上点击「允许 USB 调试」|
-| 能打开应用但无法点击 | 缺少安全调试权限 | 开启「USB 调试(安全设置)」|
-| 中文输入变成乱码或无输入 | ADB Keyboard 未启用 | 在系统设置中启用 ADB Keyboard |
-| 截图返回黑屏 | 敏感页面(支付/银行) | 正常现象，系统会自动处理 |
-| 连接模型服务失败 | URL 错误或服务未启动 | 检查 URL，确认服务正在运行 |
-| `ModuleNotFoundError` | 依赖未安装 | 执行 `pip install -r requirements.txt` |
+| 错误现象                        | 可能原因                   | 解决方案                               |
+| ------------------------------- | -------------------------- | -------------------------------------- |
+| `adb devices` 无输出            | USB 调试未开启或数据线问题 | 检查开发者选项，更换数据线             |
+| `adb devices` 显示 unauthorized | 手机未授权                 | 手机上点击「允许 USB 调试」            |
+| 能打开应用但无法点击            | 缺少安全调试权限           | 开启「USB 调试(安全设置)」             |
+| 中文输入变成乱码或无输入        | ADB Keyboard 未启用        | 在系统设置中启用 ADB Keyboard          |
+| 截图返回黑屏                    | 敏感页面(支付/银行)        | 正常现象，系统会自动处理               |
+| 连接模型服务失败                | URL 错误或服务未启动       | 检查 URL，确认服务正在运行             |
+| `ModuleNotFoundError`           | 依赖未安装                 | 执行 `pip install -r requirements.txt` |
 
 ---
 
@@ -836,6 +959,9 @@ python main.py --base-url {MODEL_URL} --model "autoglm-phone-9b" "你的任务�
 
 # 查看支持的应用列表
 python main.py --list-apps
+
+# 启用可视化反馈（在手机屏幕上显示操作指示器）
+python main.py --enable-visual-feedback --base-url {MODEL_URL} --model "autoglm-phone-9b" "打开微信给张三发消息"
 ```
 
 ---
