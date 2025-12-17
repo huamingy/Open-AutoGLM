@@ -76,12 +76,13 @@ echo.
 
 echo 📦 安装APK...
 echo 🔐 授予所有权限并安装...
-echo 💡 提示: 如果安装卡住，请按 Ctrl+C 中断，然后运行 force_install.bat
+echo 💡 如果上次安装卡住，请先运行 kill_install.bat 再试
 echo.
 
 REM 先尝试简单安装（不带-g参数，避免卡住）
-echo 尝试安装 (如果卡住超过30秒，请按 Ctrl+C 中断)...
-%ADB_CMD% install -r build\outputs\apk\debug\android_overlay_app-debug.apk
+set "APK_PATH=build\outputs\apk\debug\android_overlay_app-debug.apk"
+echo 尝试安装 (若超过30秒无响应可 Ctrl+C 终止，然后用 force_install.bat)...
+%ADB_CMD% install -r "%APK_PATH%"
 if %errorlevel% neq 0 (
     echo ⚠️ 安装失败 - 尝试自动修复...
     echo.
@@ -96,16 +97,27 @@ if %errorlevel% neq 0 (
 
     echo.
     echo 📦 重新安装应用...
-    %ADB_CMD% install -r build\outputs\apk\debug\android_overlay_app-debug.apk
+    %ADB_CMD% install -r "%APK_PATH%"
     if %errorlevel% neq 0 (
-        echo ❌ 重新安装仍然失败
-        echo.
-        echo 🔧 请尝试:
-        echo • 运行 force_install.bat (强制安装)
-        echo • 或运行 kill_install.bat (清理后重试)
-        echo.
-        pause
-        exit /b 1
+        echo ⚠️ 重新安装失败，尝试降级/测试模式安装...
+        %ADB_CMD% install -r -d "%APK_PATH%"
+        if %errorlevel% neq 0 (
+            %ADB_CMD% install -r -t "%APK_PATH%"
+            if %errorlevel% neq 0 (
+                echo ❌ 所有安装方式均失败
+                echo.
+                echo 🔧 请尝试:
+                echo • 运行 force_install.bat (强制安装)
+                echo • 或运行 kill_install.bat (清理后重试)
+                echo.
+                pause
+                exit /b 1
+            ) else (
+                echo ✅ 使用 -t 成功安装 (测试APK)
+            )
+        ) else (
+            echo ✅ 使用 -d 成功安装 (降级安装)
+        )
     ) else (
         echo ✅ 安装成功 (已自动修复签名冲突)
     )
