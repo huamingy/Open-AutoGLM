@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/overlay_background"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- 状态文本 -->
+    <TextView
+        android:id="@+id/status_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="🤖 AI助手"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <!-- 内容文本 -->
+    <TextView
+        android:id="@+id/content_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="3"
+        android:text="准备开始任务..."
+        android:textColor="@android:color/white"
+        android:textSize="12sp" />
+
+    <!-- 终止按钮 -->
+    <Button
+        android:id="@+id/terminate_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/button_background"
+        android:padding="8dp"
+        android:text="⏹️ 终止任务"
+        android:textColor="@android:color/white"
+        android:textSize="12sp" />
+
+</LinearLayout>

@@ -304,6 +304,7 @@ python start_server.py
 - 📡 WebSocket 服务：`ws://localhost:8001/ws` 处理实时通信
 - 📱 设备控制：通过网页界面发送自然语言指令
 - 👁️ 实时监控：查看 AI 思考过程和执行步骤
+- ⏹️ 任务终止：通过 `POST /terminate` API 终止正在执行的任务
 
 #### 网页使用
 
@@ -366,15 +367,50 @@ python main.py --base-url http://localhost:8000/v1 "打开美团搜索火锅"
 python examples/visual_feedback_demo.py
 ```
 
+### Android 悬浮窗应用
+
+要实现真正的手机屏幕悬浮窗，需要安装Android应用：
+
+**🚀 一键安装（推荐）**：
+```bash
+cd android_overlay_app
+
+# Windows
+build_and_install.bat
+
+# Linux/Mac
+chmod +x build_and_install.sh && ./build_and_install.sh
+```
+
+**📱 手机设置**：
+1. 设置 → 无障碍 → AutoGLM Overlay → 开启
+2. 设置 → 应用 → AutoGLM Overlay → 显示在其他应用上层 → 允许
+
+**🧪 快速测试**：
+```bash
+cd android_overlay_app
+test_overlay.bat  # Windows
+```
+
+**🎯 使用**：
+- 启动WebSocket服务器：`python ws.py`
+- 浏览器访问：http://localhost:8001
+- 执行任务时手机屏幕会显示真正的悬浮窗
+- 点击悬浮窗中的终止按钮可随时停止任务
+
+**🔧 Java兼容性**：支持JDK 8/11/17，脚本会自动处理兼容性
+
+**📖 详细文档**：查看 `android_overlay_app/INSTALL_GUIDE.md`
+
 ### 实时输出测试
 
-测试WebSocket实时输出功能：
+测试 WebSocket 实时输出功能：
 
 ```bash
 python test_realtime_output.py
 ```
 
-此脚本模拟完整的AI Agent执行过程，验证输出是否实时显示。
+此脚本模拟完整的 AI Agent 执行过程，验证输出是否实时显示。
 
 ## 远程调试
 
@@ -473,15 +509,15 @@ conn.disconnect("192.168.1.100:5555")
 
 ### 环境变量
 
-| 变量                    | 描述                | 默认值                     |
-| ----------------------- | ------------------- | -------------------------- |
-| `PHONE_AGENT_BASE_URL`  | 模型 API 地址       | `http://localhost:8000/v1` |
-| `PHONE_AGENT_MODEL`     | 模型名称            | `autoglm-phone-9b`         |
-| `PHONE_AGENT_API_KEY`   | 模型认证 API Key    | `EMPTY`                    |
-| `PHONE_AGENT_MAX_STEPS` | 每个任务最大步数    | `100`                      |
-| `PHONE_AGENT_DEVICE_ID` | ADB 设备 ID         | (自动检测)                 |
-| `PHONE_AGENT_LANG`      | 语言 (`cn` 或 `en`) | `cn`                       |
-| `PHONE_AGENT_ENABLE_VISUAL_FEEDBACK` | 启用可视化反馈 | `false`                    |
+| 变量                                 | 描述                | 默认值                     |
+| ------------------------------------ | ------------------- | -------------------------- |
+| `PHONE_AGENT_BASE_URL`               | 模型 API 地址       | `http://localhost:8000/v1` |
+| `PHONE_AGENT_MODEL`                  | 模型名称            | `autoglm-phone-9b`         |
+| `PHONE_AGENT_API_KEY`                | 模型认证 API Key    | `EMPTY`                    |
+| `PHONE_AGENT_MAX_STEPS`              | 每个任务最大步数    | `100`                      |
+| `PHONE_AGENT_DEVICE_ID`              | ADB 设备 ID         | (自动检测)                 |
+| `PHONE_AGENT_LANG`                   | 语言 (`cn` 或 `en`) | `cn`                       |
+| `PHONE_AGENT_ENABLE_VISUAL_FEEDBACK` | 启用可视化反馈      | `false`                    |
 
 ### 模型配置
 
@@ -593,6 +629,8 @@ Phone Agent 支持在手机屏幕上显示操作指示器，让您能直观看�
 - 👆 **滑动指示器**：显示滑动路径的通知
 - 📳 **触觉反馈**：操作时的手机振动
 - 🔔 **状态通知**：操作完成的通知
+- 🪟 **悬浮窗显示**：任务执行过程中显示实时状态和进度
+- ⏹️ **随时终止**：Web 界面提供终止按钮，可随时停止任务
 
 使用 `--enable-visual-feedback` 参数启用此功能。
 

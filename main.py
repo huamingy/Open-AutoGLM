@@ -22,6 +22,18 @@ from urllib.parse import urlparse
 
 from openai import OpenAI
 
+# 确保输出立即刷新，配合WebSocket实时显示
+import builtins
+_original_print = builtins.print
+
+def _realtime_print(*args, **kwargs):
+    """增强的print函数，确保输出立即刷新"""
+    _original_print(*args, **kwargs)
+    # 强制刷新stdout
+    sys.stdout.flush()
+
+builtins.print = _realtime_print
+
 from phone_agent import PhoneAgent
 from phone_agent.adb import ADBConnection, list_devices
 from phone_agent.agent import AgentConfig
@@ -369,6 +381,12 @@ Examples:
     )
 
     parser.add_argument(
+        "--enable-visual-feedback",
+        action="store_true",
+        help="Enable visual feedback indicators on phone screen during operations",
+    )
+
+    parser.add_argument(
         "task",
         nargs="?",
         type=str,
@@ -483,6 +501,7 @@ def main():
         device_id=args.device_id,
         verbose=not args.quiet,
         lang=args.lang,
+        enable_visual_feedback=args.enable_visual_feedback,
     )
 
     # Create agent
@@ -493,27 +512,39 @@ def main():
 
     # Print header
     print("=" * 50)
+    sys.stdout.flush()
     print("Phone Agent - AI-powered phone automation")
+    sys.stdout.flush()
     print("=" * 50)
+    sys.stdout.flush()
     print(f"Model: {model_config.model_name}")
+    sys.stdout.flush()
     print(f"Base URL: {model_config.base_url}")
+    sys.stdout.flush()
     print(f"Max Steps: {agent_config.max_steps}")
+    sys.stdout.flush()
     print(f"Language: {agent_config.lang}")
+    sys.stdout.flush()
 
     # Show device info
     devices = list_devices()
     if agent_config.device_id:
         print(f"Device: {agent_config.device_id}")
+        sys.stdout.flush()
     elif devices:
         print(f"Device: {devices[0].device_id} (auto-detected)")
+        sys.stdout.flush()
 
     print("=" * 50)
+    sys.stdout.flush()
 
     # Run with provided task or enter interactive mode
     if args.task:
         print(f"\nTask: {args.task}\n")
+        sys.stdout.flush()
         result = agent.run(args.task)
         print(f"\nResult: {result}")
+        sys.stdout.flush()
     else:
         # Interactive mode
         print("\nEntering interactive mode. Type 'quit' to exit.\n")

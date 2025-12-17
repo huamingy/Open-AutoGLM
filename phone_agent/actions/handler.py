@@ -17,6 +17,7 @@ from phone_agent.adb import (
     tap,
     type_text,
 )
+from phone_agent.visual_feedback import VisualFeedbackManager
 
 
 @dataclass
@@ -45,9 +46,12 @@ class ActionHandler:
         device_id: str | None = None,
         confirmation_callback: Callable[[str], bool] | None = None,
         takeover_callback: Callable[[str], None] | None = None,
+        enable_visual_feedback: bool = False,
     ):
         self.device_id = device_id
         self.confirmation_callback = confirmation_callback or self._default_confirmation
+        self.visual_feedback = VisualFeedbackManager(device_id, enable_visual_feedback)
+        self.enable_visual_feedback = enable_visual_feedback
         self.takeover_callback = takeover_callback or self._default_takeover
 
     def execute(
@@ -142,6 +146,9 @@ class ActionHandler:
 
         x, y = self._convert_relative_to_absolute(element, width, height)
 
+        # Show visual feedback on screen
+        self.visual_feedback.show_tap(x, y, duration=0.5)
+
         # Check for sensitive operation
         if "message" in action:
             if not self.confirmation_callback(action["message"]):
@@ -185,6 +192,9 @@ class ActionHandler:
 
         start_x, start_y = self._convert_relative_to_absolute(start, width, height)
         end_x, end_y = self._convert_relative_to_absolute(end, width, height)
+
+        # Show visual feedback for swipe
+        self.visual_feedback.show_swipe(start_x, start_y, end_x, end_y, duration=1.0)
 
         swipe(start_x, start_y, end_x, end_y, device_id=self.device_id)
         return ActionResult(True, False)

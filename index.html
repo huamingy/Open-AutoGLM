@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AutoGLM WebSocket 控制台</title>
+    <style>
+        body {
+            background: #111;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 80px;
+            background: #222;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #00ff00;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #333;
+            color: #0f0;
+            border: 1px solid #0f0;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #0f0;
+            color: #111;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 8px;
+            background: #222;
+            border: 1px solid #444;
+            font-size: 12px;
+        }
+
+        .status.connected {
+            border-color: #0f0;
+            background: #001100;
+        }
+
+        .status.disconnected {
+            border-color: #f00;
+            background: #110000;
+        }
+
+        pre {
+            margin-top: 20px;
+            background: #000;
+            border: 1px solid #333;
+            padding: 15px;
+            height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .loading {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>📱 AutoGLM WebSocket 实时控制台</h2>
+            <p>智能手机自动化助手 - 通过自然语言控制您的Android设备</p>
+        </div>
+
+        <div class="input-group">
+            <textarea id="cmd" placeholder="输入您的指令，例如：&#10;• 打开微信发消息给张三&#10;• 在美团搜索附近的火锅店&#10;• 截图并保存到相册"></textarea>
+
+            <div class="button-group">
+                <button onclick="run()" id="runBtn">🚀 执行</button>
+                <button onclick="terminate()" id="terminateBtn" style="display: none;">⏹️ 终止</button>
+                <button onclick="clearOutput()">🗑️ 清空</button>
+                <button onclick="connect()" id="connectBtn">🔗 连接</button>
+            </div>
+
+            <div class="status" id="status">
+                <span id="statusText">未连接 - 点击连接按钮建立WebSocket连接</span>
+            </div>
+        </div>
+
+        <pre id="output"></pre>
+    </div>
+
+    <script>
+        let ws;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+
+        // 获取WebSocket URL（自动检测当前主机）
+        function getWebSocketUrl() {
+            // 在开发环境下，WebSocket服务器运行在8002端口
+            // 无论HTML页面在哪个端口，都连接到8002端口的WebSocket服务器
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const hostname = window.location.hostname || 'localhost';
+            return `${protocol}//${hostname}:8002/ws`;
+        }
+
+        // 更新状态显示
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            const statusTextEl = document.getElementById('statusText');
+
+            statusTextEl.textContent = message;
+
+            statusEl.className = 'status';
+            if (type === 'connected') {
+                statusEl.classList.add('connected');
+            } else if (type === 'disconnected') {
+                statusEl.classList.add('disconnected');
+            }
+        }
+
+        // 添加输出到控制台
+        function addOutput(text, autoScroll = true) {
+            const output = document.getElementById('output');
+            output.textContent += text;
+            if (autoScroll) {
+                output.scrollTop = output.scrollHeight;
+            }
+        }
+
+        // 连接WebSocket
+        function connect() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                addOutput('⚠️ 已经连接，无需重复连接\n');
+                return;
+            }
+
+            const connectBtn = document.getElementById('connectBtn');
+            connectBtn.textContent = '🔄 连接中...';
+            connectBtn.disabled = true;
+
+            try {
+                ws = new WebSocket(getWebSocketUrl());
+
+                ws.onopen = () => {
+                    updateStatus('✅ 已连接到服务器', 'connected');
+                    connectBtn.textContent = '🔗 连接';
+                    connectBtn.disabled = false;
+                    reconnectAttempts = 0;
+                    addOutput('🔗 WebSocket连接已建立\n');
+                };
+
+                ws.onmessage = (e) => {
+                    // 直接添加消息，不添加额外换行符（服务器端已包含）
+                    addOutput(e.data);
+                };
+
+                ws.onclose = (e) => {
+                    updateStatus('❌ 连接已断开', 'disconnected');
+                    connectBtn.textContent = '🔗 连接';
+                    connectBtn.disabled = false;
+                    addOutput('🔌 WebSocket连接已断开\n');
+
+                    // 重置按钮状态
+                    resetButtons();
+
+                    // 自动重连（非手动断开的情况）
+                    if (e.code !== 1000 && reconnectAttempts < maxReconnectAttempts) {
+                        setTimeout(() => {
+                            reconnectAttempts++;
+                            addOutput(`🔄 尝试重连 (${reconnectAttempts}/${maxReconnectAttempts})...\n`);
+                            connect();
+                        }, 2000);
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    updateStatus('❌ 连接错误', 'disconnected');
+                    connectBtn.textContent = '🔗 连接';
+                    connectBtn.disabled = false;
+                    addOutput('❌ WebSocket连接错误\n');
+                    console.error('WebSocket error:', error);
+                };
+
+            } catch (error) {
+                updateStatus('❌ 连接失败', 'disconnected');
+                connectBtn.textContent = '🔗 连接';
+                connectBtn.disabled = false;
+                addOutput('❌ 创建WebSocket连接失败\n');
+                console.error('WebSocket creation error:', error);
+            }
+        }
+
+        // 执行命令
+        function run() {
+            const text = document.getElementById('cmd').value.trim();
+            if (!text) {
+                alert('请输入指令');
+                return;
+            }
+
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('请先建立WebSocket连接');
+                return;
+            }
+
+            const runBtn = document.getElementById('runBtn');
+            const terminateBtn = document.getElementById('terminateBtn');
+
+            runBtn.textContent = '⚙️ 执行中...';
+            runBtn.disabled = true;
+            terminateBtn.style.display = 'inline-block'; // 显示终止按钮
+
+            try {
+                ws.send(JSON.stringify({ text }));
+                addOutput(`\n📝 发送指令: ${text}\n`);
+                document.getElementById('cmd').value = ''; // 清空输入框
+            } catch (error) {
+                addOutput('❌ 发送指令失败\n');
+                console.error('Send error:', error);
+                resetButtons();
+            }
+        }
+
+        // 终止任务
+        function terminate() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                // 发送终止命令到WebSocket服务器
+                ws.send(JSON.stringify({ action: 'terminate' }));
+                addOutput('✅ 任务终止请求已发送\n');
+                resetButtons();
+            } else {
+                addOutput('❌ WebSocket未连接，无法终止任务\n');
+            }
+        }
+
+        // 重置按钮状态
+        function resetButtons() {
+            const runBtn = document.getElementById('runBtn');
+            const terminateBtn = document.getElementById('terminateBtn');
+
+            runBtn.textContent = '🚀 执行';
+            runBtn.disabled = false;
+            terminateBtn.style.display = 'none';
+        }
+
+        // 清空输出
+        function clearOutput() {
+            document.getElementById('output').textContent = '';
+        }
+
+        // 回车键发送
+        document.getElementById('cmd').addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                run();
+            }
+        });
+
+        // 页面加载时显示WebSocket URL
+        window.addEventListener('load', () => {
+            const wsUrl = getWebSocketUrl();
+            addOutput(`🌐 WebSocket URL: ${wsUrl}\n`);
+            addOutput('💡 提示: 先点击"连接"按钮建立连接，然后输入指令并点击"执行"\n');
+            addOutput('⌨️ 快捷键: Ctrl+Enter 发送指令\n\n');
+        });
+
+        // 页面卸载时关闭连接
+        window.addEventListener('beforeunload', () => {
+            if (ws) {
+                ws.close(1000, '页面关闭');
+            }
+        });
+    </script>
+
+</body>
+
+</html>

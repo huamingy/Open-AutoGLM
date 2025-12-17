@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AutoGLM Overlay</string>
+    <string name="accessibility_service_description">AutoGLM AI助手悬浮窗服务，用于显示AI操作状态和进度</string>
+    <string name="web_interface_title">AutoGLM AI助手</string>
+    <string name="task_input_hint">例如：打开微信，给张三发消息：你好</string>
+    <string name="execute_button">🚀 执行指令</string>
+    <string name="terminate_button">⏹️ 终止任务</string>
+    <string name="web_button">🌐 打开Web界面</string>
+    <string name="direct_button">🚀 直接启动服务</string>
+    <string name="settings_button">⚙️ 无障碍设置</string>
+    <string name="debug_button">🔧 调试工具</string>
+    <string name="debug_title">🔧 WebSocket调试工具</string>
+    <string name="test_connection">🌐 测试连接</string>
+    <string name="test_websocket">🔌 测试WebSocket</string>
+    <string name="clear_log">🗑️ 清除日志</string>
+    <string name="back_button">⬅️ 返回</string>
+    <string name="server_address_hint">服务器地址</string>
+    <string name="port_hint">端口</string>
+    <string name="debug_log_title">调试日志:</string>
+</resources>

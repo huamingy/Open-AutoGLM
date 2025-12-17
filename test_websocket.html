@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket测试</title>
+</head>
+<body>
+    <h2>WebSocket连接测试</h2>
+    <div>
+        <button onclick="testConnection()">测试连接</button>
+        <button onclick="testTerminate()">测试终止</button>
+    </div>
+    <div id="output"></div>
+
+    <script>
+        let ws;
+
+        function addOutput(text) {
+            document.getElementById('output').innerHTML += text + '<br>';
+        }
+
+        function testConnection() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+                addOutput('连接已关闭');
+                return;
+            }
+
+            ws = new WebSocket('ws://localhost:8002/ws');
+
+            ws.onopen = () => {
+                addOutput('✅ WebSocket连接成功');
+                // 发送测试命令
+                ws.send(JSON.stringify({ text: 'echo hello' }));
+            };
+
+            ws.onmessage = (event) => {
+                addOutput('📥 收到消息: ' + event.data);
+            };
+
+            ws.onclose = () => {
+                addOutput('🔌 连接已关闭');
+            };
+
+            ws.onerror = (error) => {
+                addOutput('❌ 连接错误: ' + error);
+            };
+        }
+
+        function testTerminate() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                addOutput('发送终止命令...');
+                ws.send(JSON.stringify({ action: 'terminate' }));
+            } else {
+                addOutput('❌ WebSocket未连接');
+            }
+        }
+    </script>
+</body>
+</html>

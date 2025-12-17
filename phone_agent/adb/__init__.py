@@ -24,6 +24,15 @@ from phone_agent.adb.input import (
     type_text,
 )
 from phone_agent.adb.screenshot import get_screenshot
+from phone_agent.adb.screen_control import (
+    get_screen_state,
+    wake_screen,
+    unlock_screen,
+    keep_screen_awake,
+    restore_screen_timeout,
+    prepare_screen_for_operation,
+    cleanup_screen_settings,
+)
 
 __all__ = [
     # Screenshot
@@ -42,6 +51,14 @@ __all__ = [
     "double_tap",
     "long_press",
     "launch_app",
+    # Screen control
+    "get_screen_state",
+    "wake_screen",
+    "unlock_screen",
+    "keep_screen_awake",
+    "restore_screen_timeout",
+    "prepare_screen_for_operation",
+    "cleanup_screen_settings",
     # Connection management
     "ADBConnection",
     "DeviceInfo",

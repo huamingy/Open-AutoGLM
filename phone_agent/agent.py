@@ -1,6 +1,7 @@
 """Main PhoneAgent class for orchestrating phone automation."""
 
 import json
+import sys
 import traceback
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -22,6 +23,7 @@ class AgentConfig:
     lang: str = "cn"
     system_prompt: str | None = None
     verbose: bool = True
+    enable_visual_feedback: bool = False
 
     def __post_init__(self):
         if self.system_prompt is None:
@@ -67,6 +69,7 @@ class PhoneAgent:
         agent_config: AgentConfig | None = None,
         confirmation_callback: Callable[[str], bool] | None = None,
         takeover_callback: Callable[[str], None] | None = None,
+        websocket=None,  # WebSocket for real-time output
     ):
         self.model_config = model_config or ModelConfig()
         self.agent_config = agent_config or AgentConfig()
@@ -76,10 +79,13 @@ class PhoneAgent:
             device_id=self.agent_config.device_id,
             confirmation_callback=confirmation_callback,
             takeover_callback=takeover_callback,
+            enable_visual_feedback=self.agent_config.enable_visual_feedback,
         )
 
         self._context: list[dict[str, Any]] = []
         self._step_count = 0
+        self._websocket = websocket  # Store websocket for real-time output
+        self._terminated = False  # 终止标志
 
     def run(self, task: str) -> str:
         """
@@ -94,20 +100,171 @@ class PhoneAgent:
         self._context = []
         self._step_count = 0
 
-        # First step with user prompt
-        result = self._execute_step(task, is_first=True)
+        # Show initial overlay
+        if hasattr(self.action_handler, 'visual_feedback'):
+            self.action_handler.visual_feedback.show_overlay(
+                f"任务启动", f"正在执行: {task[:50]}...", "运行中", show_terminate=True
+            )
 
-        if result.finished:
-            return result.message or "Task completed"
-
-        # Continue until finished or max steps reached
-        while self._step_count < self.agent_config.max_steps:
-            result = self._execute_step(is_first=False)
+        try:
+            # First step with user prompt
+            result = self._execute_step(task, is_first=True)
 
             if result.finished:
+                # Hide overlay on completion
+                if hasattr(self.action_handler, 'visual_feedback'):
+                    self.action_handler.visual_feedback.show_overlay(
+                        "任务完成", result.message or "任务已完成", "完成", show_terminate=False
+                    )
+                    # Auto hide after 3 seconds
+                    import threading
+                    def hide_overlay():
+                        import time
+                        time.sleep(3)
+                        self.action_handler.visual_feedback.hide_overlay()
+                    threading.Thread(target=hide_overlay, daemon=True).start()
                 return result.message or "Task completed"
 
-        return "Max steps reached"
+            # Continue until finished or max steps reached
+            while self._step_count < self.agent_config.max_steps:
+                # Check if terminated
+                if self._terminated:
+                    return "Task terminated by user"
+
+                result = self._execute_step(is_first=False)
+
+                if result.finished:
+                    # Hide overlay on completion
+                    if hasattr(self.action_handler, 'visual_feedback'):
+                        self.action_handler.visual_feedback.show_overlay(
+                            "任务完成", result.message or "任务已完成", "完成", show_terminate=False
+                        )
+                        # Auto hide after 3 seconds
+                        import threading
+                        def hide_overlay():
+                            import time
+                            time.sleep(3)
+                            self.action_handler.visual_feedback.hide_overlay()
+                        threading.Thread(target=hide_overlay, daemon=True).start()
+                    return result.message or "Task completed"
+
+            # Max steps reached
+            if hasattr(self.action_handler, 'visual_feedback'):
+                self.action_handler.visual_feedback.show_overlay(
+                    "任务终止", "达到最大步骤数限制", "错误", show_terminate=False
+                )
+                # Auto hide after 3 seconds
+                import threading
+                def hide_overlay():
+                    import time
+                    time.sleep(3)
+                    self.action_handler.visual_feedback.hide_overlay()
+                threading.Thread(target=hide_overlay, daemon=True).start()
+            return "Max steps reached"
+
+        except Exception as e:
+            # Show error in overlay
+            if hasattr(self.action_handler, 'visual_feedback'):
+                self.action_handler.visual_feedback.show_overlay(
+                    "任务错误", f"执行出错: {str(e)[:50]}", "错误", show_terminate=False
+                )
+                # Auto hide after 5 seconds
+                import threading
+                def hide_overlay():
+                    import time
+                    time.sleep(5)
+                    self.action_handler.visual_feedback.hide_overlay()
+                threading.Thread(target=hide_overlay, daemon=True).start()
+            raise
+        finally:
+            # Cleanup screen settings
+            try:
+                from phone_agent.adb import cleanup_screen_settings
+                cleanup_screen_settings(self.agent_config.device_id)
+            except Exception:
+                pass  # Ignore cleanup errors
+
+    def _ensure_screen_ready(self) -> None:
+        """
+        Ensure screen is ready for operation:
+        - Wake up if asleep
+        - Unlock if locked (no password required)
+        - Keep screen awake
+
+        Note: This method runs in a sync thread, so it uses print statements
+        and relies on ws.py to capture output via output redirection.
+        """
+        try:
+            from phone_agent.adb import get_screen_state, wake_screen, unlock_screen, keep_screen_awake
+
+            # 检查屏幕状态
+            state = get_screen_state(self.agent_config.device_id)
+
+            screen_changed = False
+
+            # 如果屏幕没有唤醒，唤醒它
+            if not state['awake']:
+                print("检测到屏幕休眠，正在唤醒...")
+
+                if wake_screen(self.agent_config.device_id):
+                    print("屏幕已唤醒")
+                    screen_changed = True
+                else:
+                    print("屏幕唤醒失败")
+
+            # 如果屏幕锁定（无密码），解锁它
+            if state['screen_locked']:
+                print("检测到屏幕锁定，正在解锁...")
+
+                if unlock_screen(self.agent_config.device_id):
+                    print("屏幕已解锁")
+                    screen_changed = True
+                else:
+                    print("屏幕解锁失败（可能需要密码或PIN）")
+
+            # 确保屏幕保持常亮
+            keep_screen_awake(self.agent_config.device_id, 30)  # 30分钟
+
+            # 如果屏幕状态发生了变化，等待一下让系统稳定
+            if screen_changed:
+                import time
+                time.sleep(1.0)
+
+        except Exception as e:
+            print(f"屏幕状态检查失败: {e}")
+
+    def terminate(self) -> None:
+        """
+        Terminate the currently running task.
+        """
+        self._terminated = True
+
+        # Cleanup screen settings when terminated
+        try:
+            from phone_agent.adb import cleanup_screen_settings
+            cleanup_screen_settings(self.agent_config.device_id)
+        except Exception:
+            pass  # Ignore cleanup errors
+        if hasattr(self.action_handler, 'visual_feedback'):
+            self.action_handler.visual_feedback.show_overlay(
+                "任务终止", "用户手动终止任务", "错误", show_terminate=False
+            )
+            # Auto hide after 3 seconds
+            import threading
+            def hide_overlay():
+                import time
+                time.sleep(3)
+                self.action_handler.visual_feedback.hide_overlay()
+            threading.Thread(target=hide_overlay, daemon=True).start()
+
+    def is_terminated(self) -> bool:
+        """
+        Check if the task has been terminated.
+
+        Returns:
+            True if terminated, False otherwise.
+        """
+        return self._terminated
 
     def step(self, task: str | None = None) -> StepResult:
         """
@@ -138,6 +295,9 @@ class PhoneAgent:
     ) -> StepResult:
         """Execute a single step of the agent loop."""
         self._step_count += 1
+
+        # 检查并处理屏幕状态（唤醒、解锁、保持常亮）
+        # 注意：消息将通过output_queue发送，由ws.py在异步上下文中处理
 
         # Capture current screen state
         screenshot = get_screenshot(self.agent_config.device_id)
@@ -193,16 +353,38 @@ class PhoneAgent:
             # Print thinking process
             msgs = get_messages(self.agent_config.lang)
             print("\n" + "=" * 50)
+            sys.stdout.flush()
             print(f"💭 {msgs['thinking']}:")
+            sys.stdout.flush()
             print("-" * 50)
+            sys.stdout.flush()
             print(response.thinking)
+            sys.stdout.flush()
             print("-" * 50)
+            sys.stdout.flush()
             print(f"🎯 {msgs['action']}:")
+            sys.stdout.flush()
             print(json.dumps(action, ensure_ascii=False, indent=2))
+            sys.stdout.flush()
             print("=" * 50 + "\n")
+            sys.stdout.flush()
+
+        # Update overlay with current thinking
+        if hasattr(self.action_handler, 'visual_feedback'):
+            thinking_preview = response.thinking[:80] + "..." if len(response.thinking) > 80 else response.thinking
+            self.action_handler.visual_feedback.update_overlay(
+                f"步骤 {self._step_count}", f"思考: {thinking_preview}", "思考中"
+            )
 
         # Remove image from context to save space
         self._context[-1] = MessageBuilder.remove_images_from_message(self._context[-1])
+
+        # Update overlay with action being executed
+        if hasattr(self.action_handler, 'visual_feedback'):
+            action_desc = self._get_action_description(action)
+            self.action_handler.visual_feedback.update_overlay(
+                f"步骤 {self._step_count}", f"执行: {action_desc}", "执行中"
+            )
 
         # Execute action
         try:
@@ -229,10 +411,13 @@ class PhoneAgent:
         if finished and self.agent_config.verbose:
             msgs = get_messages(self.agent_config.lang)
             print("\n" + "🎉 " + "=" * 48)
+            sys.stdout.flush()
             print(
                 f"✅ {msgs['task_completed']}: {result.message or action.get('message', msgs['done'])}"
             )
+            sys.stdout.flush()
             print("=" * 50 + "\n")
+            sys.stdout.flush()
 
         return StepResult(
             success=result.success,
@@ -246,6 +431,40 @@ class PhoneAgent:
     def context(self) -> list[dict[str, Any]]:
         """Get the current conversation context."""
         return self._context.copy()
+
+    def _get_action_description(self, action: dict) -> str:
+        """Generate a human-readable description of the action."""
+        if not action:
+            return "未知操作"
+
+        action_type = action.get("_metadata") or action.get("action", "unknown")
+
+        if action_type == "do":
+            real_action = action.get("action", "unknown")
+            if real_action == "Launch":
+                app = action.get("app", "应用")
+                return f"启动{app}"
+            elif real_action == "Tap":
+                element = action.get("element", [])
+                if element and len(element) >= 2:
+                    return f"点击位置({element[0]}, {element[1]})"
+                return "点击操作"
+            elif real_action == "Type":
+                text = action.get("text", "")
+                return f"输入: {text[:20]}{'...' if len(text) > 20 else ''}"
+            elif real_action == "Swipe":
+                return "滑动操作"
+            elif real_action == "Back":
+                return "返回上一页"
+            elif real_action == "Home":
+                return "回到桌面"
+            else:
+                return f"{real_action}操作"
+        elif action_type == "finish":
+            message = action.get("message", "任务完成")
+            return f"完成: {message[:30]}{'...' if len(message) > 30 else ''}"
+        else:
+            return f"{action_type}"
 
     @property
     def step_count(self) -> int:
